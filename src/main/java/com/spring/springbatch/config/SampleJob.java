@@ -57,7 +57,7 @@ public class SampleJob {
                 .build();
     }
 
-//        @Bean
+    @Bean
     public Job firstJob() {
         return this.jobBuilderFactory.get("firstJob")
                 .incrementer(new RunIdIncrementer())
@@ -71,7 +71,8 @@ public class SampleJob {
     public Job secondJob() {
         return this.jobBuilderFactory.get("secondJob")
                 .incrementer(new RunIdIncrementer())
-                .start(firstChunkStep())
+                .start(firstChunkStep()) // chunk-oriented step
+                .next(secondStep()) // tasklet step
                 .build();
     }
 
