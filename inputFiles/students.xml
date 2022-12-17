@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<students>
+    <student>
+        <id>1</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>2</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>3</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>4</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>5</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>6</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+    <student>
+        <id>7</id>
+        <fName>Bakbergen</fName>
+        <lastName>Atymtay</lastName>
+        <email>atymtaev@bk.ru</email>
+    </student>
+</students>
