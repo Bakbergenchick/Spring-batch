@@ -1,5 +1,6 @@
 package com.spring.springbatch.service;
 
+import com.spring.springbatch.model.StudentCsv;
 import com.spring.springbatch.model.StudentResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -38,5 +39,14 @@ public class StudentService {
         }
 
         return null;
+    }
+
+    public StudentResponse restCallToCreateStudent(StudentCsv studentCsv){
+        RestTemplate restTemplate = new RestTemplate();
+
+        return restTemplate.postForObject(
+                "http://localhost:8081/api/v1/students",
+                studentCsv,
+                StudentResponse.class);
     }
 }
