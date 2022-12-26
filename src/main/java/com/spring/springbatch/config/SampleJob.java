@@ -1,5 +1,6 @@
 package com.spring.springbatch.config;
 
+import com.spring.springbatch.entity.postgre.Student;
 import com.spring.springbatch.listener.FirstJobListener;
 import com.spring.springbatch.listener.FirstStepListener;
 import com.spring.springbatch.listener.SkipListener;
@@ -18,10 +19,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.item.adapter.ItemReaderAdapter;
 import org.springframework.batch.item.adapter.ItemWriterAdapter;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.ItemPreparedStatementSetter;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.database.*;
 import org.springframework.batch.item.file.*;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -45,9 +43,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +88,21 @@ public class SampleJob {
     private DataSource dataSource;
 
     @Autowired
+    @Qualifier("postgreDataSource")
+    private DataSource postgreDataSource;
+
+    @Autowired
+    @Qualifier("mySqlEntityManagerFactory")
+    private EntityManagerFactory mySqlEntityManagerFactory;
+
+    @Autowired
+    @Qualifier("postgreSqlEntityManagerFactory")
+    private EntityManagerFactory postgreSqlEntityManagerFactory;
+
+    @Autowired
+    private JpaTransactionManager jpaTransactionManager;
+
+    @Autowired
     private SkipListener skipListener;
 
     public Step firstStep() {
@@ -124,20 +139,21 @@ public class SampleJob {
 
     public Step firstChunkStep() {
         return stepBuilderFactory.get("firstChunk")
-                .<StudentCsv, StudentJson>chunk(2)
+                .<Student, com.spring.springbatch.entity.mysql.Student>chunk(2)
 //                .reader(responseItemReaderAdapter())
-                .reader(csvFlatFileItemReader())
+                .reader(jpaCursorItemReader())
                 .processor(firstItemProcessor)
 //                .writer(firstItemWriter)
 //                .writer(csvFlatFileItemWriter())
-                .writer(jsonFileItemWriter())
-                .faultTolerant()
-                .skip(Exception.class)
-                .skipLimit(100)
+                .writer(jpaItemWriter())
+//                .faultTolerant()
+//                .skip(Exception.class)
+//                .skipLimit(100)
 //                .skipPolicy(new AlwaysSkipItemSkipPolicy())
-                .retry(Exception.class)
-                .retryLimit(2)
-                .listener(skipListener)
+//                .retry(Exception.class)
+//                .retryLimit(2)
+//                .listener(skipListener)
+                .transactionManager(jpaTransactionManager)
                 .build();
 
     }
@@ -250,6 +266,16 @@ public class SampleJob {
         studentResponseItemReaderAdapter.setTargetObject(studentService);
         studentResponseItemReaderAdapter.setTargetMethod("getStudent");
         return studentResponseItemReaderAdapter;
+    }
+
+    // Jpa Item Reader
+    public JpaCursorItemReader<Student> jpaCursorItemReader(){
+        JpaCursorItemReader<Student> studentJpaCursorItemReader =
+                new JpaCursorItemReader<>();
+        studentJpaCursorItemReader.setEntityManagerFactory(postgreSqlEntityManagerFactory);
+        studentJpaCursorItemReader.setQueryString("from Student");
+
+        return studentJpaCursorItemReader;
     }
 
     //------------------ITEM WRITERS---------------/
@@ -374,5 +400,15 @@ public class SampleJob {
         studentResponseItemWriterAdapter.setTargetObject(studentService);
         studentResponseItemWriterAdapter.setTargetMethod("restCallToCreateStudent");
         return studentResponseItemWriterAdapter;
+    }
+
+    // Jpa Item Writer
+    public JpaItemWriter<com.spring.springbatch.entity.mysql.Student> jpaItemWriter(){
+        JpaItemWriter<com.spring.springbatch.entity.mysql.Student> studentJpaItemWriter =
+                new JpaItemWriter<>();
+
+        studentJpaItemWriter.setEntityManagerFactory(mySqlEntityManagerFactory);
+
+        return studentJpaItemWriter;
     }
 }
