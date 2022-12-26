@@ -1,5 +1,7 @@
 [
- {"id":1,"email":"drrdg","firstName":"drgd"},
- {"id":2,"email":"drgdrg","firstName":"drgdrg"},
- {"id":3,"email":"drgdrg","firstName":"drgdrg"}
+ {"id":1,"lastName":"Atymtay","email":"atymtaevbak@bk.ru","firstName":"Bakbergen"},
+ {"id":2,"lastName":"Umbetov","email":"umbetov@bk.ru","firstName":"Azamat"},
+ {"id":8,"lastName":"Musabekov","email":"beka@bk.ru","firstName":"Bekzat"},
+ {"id":9,"lastName":"Orynbasar","email":"orynbassar@bk.ru","firstName":"Didar"},
+ {"id":10,"lastName":"Sagymayev","email":"abylay@bk.ru","firstName":"Abylay"}
 ]

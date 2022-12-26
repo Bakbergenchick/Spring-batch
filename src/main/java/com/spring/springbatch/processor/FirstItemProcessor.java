@@ -8,16 +8,22 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FirstItemProcessor implements ItemProcessor<StudentCsv, StudentJDBC> {
+public class FirstItemProcessor implements ItemProcessor<StudentCsv, StudentJson> {
     @Override
-    public StudentJDBC process(StudentCsv item) throws Exception {
+    public StudentJson process(StudentCsv item) throws Exception {
         System.out.println("Item processor in action...");
-        StudentJDBC studentJDBC = new StudentJDBC();
-        studentJDBC.setId(item.getID());
-        studentJDBC.setFirstName(item.getFirstName());
-        studentJDBC.setLastName(item.getLastName());
-        studentJDBC.setEmail(item.getEmail());
 
-        return studentJDBC;
+        if (item.getID() == null){
+            System.out.println("Processor exception...");
+            throw new Exception();
+        }
+
+        StudentJson studentJson = new StudentJson();
+        studentJson.setId(item.getID());
+        studentJson.setFName(item.getFirstName());
+        studentJson.setLastName(item.getLastName());
+        studentJson.setEmail(item.getEmail());
+
+        return studentJson;
     }
 }

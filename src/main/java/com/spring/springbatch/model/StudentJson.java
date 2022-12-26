@@ -14,7 +14,7 @@ public class StudentJson {
     private Long id;
     @JsonProperty(value = "firstName")
     private String fName;
-//    private String lastName;
+    private String lastName;
     private String email;
 
 }

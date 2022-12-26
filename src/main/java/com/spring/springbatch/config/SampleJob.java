@@ -2,6 +2,7 @@ package com.spring.springbatch.config;
 
 import com.spring.springbatch.listener.FirstJobListener;
 import com.spring.springbatch.listener.FirstStepListener;
+import com.spring.springbatch.listener.SkipListener;
 import com.spring.springbatch.model.*;
 import com.spring.springbatch.processor.FirstItemProcessor;
 import com.spring.springbatch.reader.FirstItemReader;
@@ -14,16 +15,14 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.item.adapter.ItemReaderAdapter;
 import org.springframework.batch.item.adapter.ItemWriterAdapter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.ItemPreparedStatementSetter;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
-import org.springframework.batch.item.file.FlatFileFooterCallback;
-import org.springframework.batch.item.file.FlatFileHeaderCallback;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.*;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
@@ -56,6 +55,7 @@ import java.io.Writer;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 @Configuration
 @SuppressWarnings("ALL")
@@ -86,6 +86,9 @@ public class SampleJob {
     @Autowired
     @Qualifier("universityDataSource")
     private DataSource dataSource;
+
+    @Autowired
+    private SkipListener skipListener;
 
     public Step firstStep() {
         return this.stepBuilderFactory.get("firstStep")
@@ -121,13 +124,20 @@ public class SampleJob {
 
     public Step firstChunkStep() {
         return stepBuilderFactory.get("firstChunk")
-                .<StudentCsv, StudentCsv>chunk(2)
+                .<StudentCsv, StudentJson>chunk(2)
 //                .reader(responseItemReaderAdapter())
                 .reader(csvFlatFileItemReader())
-//                .processor(firstItemProcessor)
+                .processor(firstItemProcessor)
 //                .writer(firstItemWriter)
 //                .writer(csvFlatFileItemWriter())
-                .writer(responseItemWriterAdapter())
+                .writer(jsonFileItemWriter())
+                .faultTolerant()
+                .skip(Exception.class)
+                .skipLimit(100)
+//                .skipPolicy(new AlwaysSkipItemSkipPolicy())
+                .retry(Exception.class)
+                .retryLimit(2)
+                .listener(skipListener)
                 .build();
 
     }
@@ -284,7 +294,20 @@ public class SampleJob {
                 new FileSystemResource(new File("C:\\Users\\batym\\OneDrive\\Рабочий стол\\spring-batch\\outputFiles\\student.json"));
 
         JsonFileItemWriter<StudentJson> jsonFileItemWriter =
-                new JsonFileItemWriter<>(fileSystemResource, new JacksonJsonObjectMarshaller<>());
+                new JsonFileItemWriter<StudentJson>(fileSystemResource, new JacksonJsonObjectMarshaller<>()){
+                    @Override
+                    public String doWrite(List<? extends StudentJson> items) {
+                        items.stream()
+                                .forEach(studentJson -> {
+                                    if (studentJson.getId() == 3){
+                                        System.out.println("Writer exception...");
+                                        throw new NullPointerException("Id=3 is not appropriate");
+                                    }
+                                });
+                        return super.doWrite(items);
+                    }
+                };
+
 
         return jsonFileItemWriter;
     }
